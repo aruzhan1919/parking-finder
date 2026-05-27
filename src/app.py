@@ -1,19 +1,34 @@
 """
 app.py
 ======
-HTTP API layer. Thin wrapper over finder.py.
+HTTP API layer + frontend.
 
 Rule: this file should contain almost no business logic.
 Only request parsing, calling finder, returning JSON, handling errors.
 """
 
-from flask import Flask, jsonify, request
+import os
+
+from flask import Flask, jsonify, render_template, request
 from pydantic import ValidationError
 
 from src.finder import find_nearest_parkings
 from src.schemas import FindParkingRequest, FindParkingResponse, ParkingResult
 
-app = Flask(__name__)
+# Resolve folders relative to project root, not src/
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, "templates"),
+    static_folder=os.path.join(BASE_DIR, "static"),
+)
+
+
+@app.route("/")
+def index():
+    """Serve the frontend page."""
+    return render_template("index.html")
 
 
 @app.route("/health")
@@ -33,8 +48,12 @@ def find_parking():
     Response:
         {"parkings": [{id, coords, drive_time_sec, walk_time_sec}, ...]}
     """
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "empty_body"}), 400
+
     try:
-        req = FindParkingRequest(**request.get_json())
+        req = FindParkingRequest(**data)
     except ValidationError as e:
         return jsonify({"error": "invalid_input", "details": e.errors()}), 400
 
@@ -45,4 +64,4 @@ def find_parking():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5002, debug=True)

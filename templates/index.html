@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parking Finder — Astana</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Our styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div id="sidebar">
+        <h1>🅿️ Parking Finder</h1>
+        <p class="subtitle">Find the best parking in Astana</p>
+
+        <div class="instructions">
+            <p><strong>How to use:</strong></p>
+            <ol>
+                <li>Click on the map to set your <span class="green">start</span> point</li>
+                <li>Click again to set your <span class="red">destination</span></li>
+                <li>Click "Find Parking" below</li>
+            </ol>
+        </div>
+
+        <div class="status">
+            <p>Start: <span id="start-status">not set</span></p>
+            <p>Destination: <span id="dest-status">not set</span></p>
+        </div>
+
+        <button id="find-btn" disabled>Find Parking</button>
+        <button id="reset-btn">Reset</button>
+
+        <div id="results"></div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Our JS -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
