@@ -4,6 +4,6 @@ services:
   api:
     build: .
     ports:
-      - "5000:5000"
+      - "5002:5002"
     volumes:
       - ./data:/app/data
