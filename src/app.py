@@ -14,6 +14,7 @@ from pydantic import ValidationError
 
 from src.finder import find_nearest_parkings
 from src.schemas import FindParkingRequest, FindParkingResponse, ParkingResult
+from src.routing import get_graph
 
 # Resolve folders relative to project root, not src/
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
