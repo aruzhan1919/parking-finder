@@ -37,12 +37,35 @@ def test_find_parking_rejects_wrong_types(client):
 
 
 @pytest.mark.slow
-def test_find_parking_returns_3_results(client):
-    res = client.post(
-        "/find-parking",
-        json={"start": [51.13, 71.43], "dest": [51.125, 71.428]},
-    )
+def test_find_parking_returns_results(client):
+    from unittest.mock import patch
+
+    fake = [
+        {
+            "id": "a",
+            "coords": (51.126, 71.429),
+            "name": "A",
+            "address": "",
+            "capacity": 100,
+            "price": "100 тнг./час",
+            "tags": [],
+        },
+        {
+            "id": "b",
+            "coords": (51.124, 71.427),
+            "name": "B",
+            "address": "",
+            "capacity": 50,
+            "price": None,
+            "tags": [],
+        },
+    ]
+    with patch("src.finder.get_parkings_near", return_value=fake):
+        res = client.post(
+            "/find-parking",
+            json={"start": [51.13, 71.43], "dest": [51.125, 71.428]},
+        )
     assert res.status_code == 200
     body = res.get_json()
     assert "parkings" in body
-    assert len(body["parkings"]) == 3
+    assert len(body["parkings"]) <= 5

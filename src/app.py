@@ -3,23 +3,27 @@ app.py
 ======
 HTTP API layer + frontend.
 
-Rule: this file should contain almost no business logic.
-Only request parsing, calling finder, returning JSON, handling errors.
+Правило: тут почти нет бизнес-логики.
+Только парсинг запроса, вызов finder, отдача JSON, обработка ошибок.
 """
 
 import os
+import json
+from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request
 from pydantic import ValidationError
 
 from src.finder import find_nearest_parkings
 from src.schemas import FindParkingRequest, FindParkingResponse, ParkingResult
-from src.routing import get_graph
-import json
-from pathlib import Path
 
-# Resolve folders relative to project root, not src/
+# Папки считаем от корня проекта, не от src/
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Радиус поиска парковок вокруг точки назначения (метры)
+SEARCH_RADIUS_M = 1000
+# Сколько парковок показывать
+TOP_N = 5
 
 app = Flask(
     __name__,
@@ -30,26 +34,24 @@ app = Flask(
 
 @app.route("/")
 def index():
-    """Serve the frontend page."""
+    """Главная страница."""
     return render_template("index.html")
 
 
 @app.route("/health")
 def health():
-    """Liveness check for deployment platforms."""
+    """Проверка живости для деплоя."""
     return jsonify({"status": "ok"})
 
 
 @app.route("/find-parking", methods=["POST"])
 def find_parking():
     """
-    Find the 3 nearest parkings for a given start and destination.
+    Найти топ-N парковок для пары start/dest.
 
-    Request:
-        {"start": [lat, lon], "dest": [lat, lon]}
-
-    Response:
-        {"parkings": [{id, coords, drive_time_sec, walk_time_sec}, ...]}
+    Запрос:  {"start": [lat, lon], "dest": [lat, lon]}
+    Ответ:   {"parkings": [{id, coords, name, address, capacity,
+                            price, tags, drive_time_sec, walk_time_sec}, ...]}
     """
     data = request.get_json()
     if not data:
@@ -60,26 +62,16 @@ def find_parking():
     except ValidationError as e:
         return jsonify({"error": "invalid_input", "details": e.errors()}), 400
 
-    results = find_nearest_parkings(req.start, req.dest, top_n=3)
+    try:
+        results = find_nearest_parkings(
+            req.start, req.dest, top_n=TOP_N, radius_m=SEARCH_RADIUS_M
+        )
+    except Exception as e:
+        # Например, упал запрос к 2GIS или не задан ключ
+        return jsonify({"error": "lookup_failed", "message": str(e)}), 502
 
     response = FindParkingResponse(parkings=[ParkingResult(**r) for r in results])
     return jsonify(response.model_dump())
-
-
-@app.route("/debug")
-def debug_map():
-    return render_template("debug_map.html")
-
-
-@app.route("/api/parkings-raw")
-def parkings_raw():
-    """Отдаёт сырой JSON парковок (то, что нагрёб скрипт)."""
-    project_root = Path(__file__).resolve().parent.parent
-    path = project_root / "data" / "parkings.json"
-    if not path.exists():
-        return jsonify([]), 404
-    with path.open(encoding="utf-8") as f:
-        return jsonify(json.load(f))
 
 
 if __name__ == "__main__":

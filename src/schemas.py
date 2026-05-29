@@ -1,39 +1,38 @@
 """
 schemas.py
 ==========
-Pydantic models for API request/response validation.
-
-Why Pydantic:
-    - Catches bad input before it reaches business logic
-    - Automatic JSON serialization
-    - Type hints become runtime checks
+Pydantic-модели для валидации запроса/ответа API.
 """
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, Field
-
 
 Coords = Tuple[float, float]
 
 
 class FindParkingRequest(BaseModel):
-    """POST /find-parking input."""
+    """Вход POST /find-parking."""
 
-    start: Coords = Field(..., description="(lat, lon) of driver's start position")
-    dest: Coords = Field(..., description="(lat, lon) of destination")
+    start: Coords = Field(..., description="(lat, lon) старта водителя")
+    dest: Coords = Field(..., description="(lat, lon) назначения")
 
 
 class ParkingResult(BaseModel):
-    """One parking spot in the response."""
+    """Одна парковка в ответе."""
 
     id: str
     coords: Coords
+    name: str
+    address: str
+    capacity: Optional[int] = None
+    price: Optional[str] = None
+    tags: List[str] = []
     drive_time_sec: float
     walk_time_sec: float
 
 
 class FindParkingResponse(BaseModel):
-    """POST /find-parking output."""
+    """Выход POST /find-parking."""
 
     parkings: List[ParkingResult]
