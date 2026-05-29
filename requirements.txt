@@ -5,3 +5,5 @@ geopy==2.4.1
 pydantic==2.13.4
 gunicorn==21.2.0
 scikit-learn==1.8.0
+requests==2.32.3
+python-dotenv==1.0.1

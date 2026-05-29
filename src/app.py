@@ -15,6 +15,8 @@ from pydantic import ValidationError
 from src.finder import find_nearest_parkings
 from src.schemas import FindParkingRequest, FindParkingResponse, ParkingResult
 from src.routing import get_graph
+import json
+from pathlib import Path
 
 # Resolve folders relative to project root, not src/
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -62,6 +64,22 @@ def find_parking():
 
     response = FindParkingResponse(parkings=[ParkingResult(**r) for r in results])
     return jsonify(response.model_dump())
+
+
+@app.route("/debug")
+def debug_map():
+    return render_template("debug_map.html")
+
+
+@app.route("/api/parkings-raw")
+def parkings_raw():
+    """Отдаёт сырой JSON парковок (то, что нагрёб скрипт)."""
+    project_root = Path(__file__).resolve().parent.parent
+    path = project_root / "data" / "parkings.json"
+    if not path.exists():
+        return jsonify([]), 404
+    with path.open(encoding="utf-8") as f:
+        return jsonify(json.load(f))
 
 
 if __name__ == "__main__":
