@@ -14,7 +14,7 @@ tests → Docker → deployment.
 
 ## Live Demo
 
-Deployed on Railway. (parking-finder-production-ef5c.up.railway.app)
+Deployed on Railway. ([parking-finder-production-ef5c.up.railway.app](https://parking-finder-production-ef5c.up.railway.app/))
 
 ## How It Works
 
